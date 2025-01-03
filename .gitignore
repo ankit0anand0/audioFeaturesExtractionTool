@@ -1,5 +1,8 @@
-tmp/
-venv/
 __pycache__/
-.DS_Store/
-*.egg-info/
+.DS_Store
+.ipynb_checkpoints
+
+venv/
+tmp/
+
+meeting/
