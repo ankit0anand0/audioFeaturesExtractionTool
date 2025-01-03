@@ -56,14 +56,15 @@ def loudnessApp():
 		audioData = audio.getvalue()
 		audioName = audio.name.split(".")[0]
 		isAudioLoaded = False
-		try:
-			audioBuffer = io.BytesIO(audioData)  # convert binary data to a file-like object
-			audioSignal, audioSr = librosa.load(audioBuffer, sr=None)  # read the audio as numpy array
-			st.audio(audioData, format="audio/")
-			isAudioLoaded = True
-		except Exception as e:
-			isAudioLoaded = False
-			st.error("audio loading issue")
+		with st.spinner("loading audio"):
+			try:
+				audioBuffer = io.BytesIO(audioData)  # convert binary data to a file-like object
+				audioSignal, audioSr = librosa.load(audioBuffer, sr=None)  # read the audio as numpy array
+				st.audio(audioData, format="audio/")
+				isAudioLoaded = True
+			except Exception as e:
+				isAudioLoaded = False
+				st.error("audio loading issue")
 		
 		if isAudioLoaded:
 			with st.spinner("computing loudness"):
