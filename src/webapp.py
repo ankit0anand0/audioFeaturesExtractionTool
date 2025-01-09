@@ -22,7 +22,7 @@ app = st.sidebar.selectbox("audio features", ["loudness", "cut-off", "vocal chor
 if app == "loudness":
 	loudnessApp()
 elif app == "cut-off":
-	pass
+	cutOffApp()
 elif app == "vocal chorus":
 	pass
 elif app == "beat start":

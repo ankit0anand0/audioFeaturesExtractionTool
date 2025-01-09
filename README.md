@@ -1,14 +1,12 @@
-# Audio Features Extraction Tool
+# audio features extraction tools
 
-To extract the following audio features from an audio signal.
+to extract the following audio features from an audio signal.
 
-1. A measure of loudness aggregated over a given interval (1 to 5 sec)
-2. Energy distribution across frequency bands
-3. A measure of vocal chorus in the audio signal
-4. Start timestamp of heavy percussion elements in the audio signal
-5. BPM from spotify API sometimes suggest higher values due to the presence of so called "pseudo elements". Is it possible to correct that?
+1. a measure of short-time loudness (resolution of 1 to 5 sec)
+2. low and high cut off frequencies of an audio signal
+3. a measure of vocal chorus in the song
+4. start timestamp of percussion elements in the audio signal
+5. bpm from spotify api sometimes suggest higher values due to the presence of so called "pseudo elements". is it possible to correct that?
 
-## Args
-
-## Returns
+to run the code using web interface, visit <a href="https://audiofeatures.streamlit.app">audiofeatures.streamlit.app</a>
 

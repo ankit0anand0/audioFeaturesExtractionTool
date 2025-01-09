@@ -11,7 +11,6 @@ import scipy.signal as signal
 import matplotlib.pyplot as plt
 import pandas as pd
 
-
 #---------------------------SETTINGS------------------------------
 HIGH_RESOLUTION_SETTINGS = {
 	"name": "highres",
@@ -47,7 +46,7 @@ def seconds_to_mmss(x:float=None, _=None):
 	secs = int(x % 60)
 	return f"{mins:02}:{secs:02}"
 
-def getPerceivedLoudness(audioSignal:np.ndarray=None, audioSr:int=None, outputDp:Path=None, resolutionSetting:dict=None, audioFn:str="Untitled"):
+def getLoudness(audioSignal:np.ndarray=None, audioSr:int=None, outputDp:Path=None, resolutionSetting:dict=None, audioFn:str="Untitled"):
 	"""
 	desc
 	----

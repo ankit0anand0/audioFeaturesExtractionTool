@@ -34,12 +34,11 @@ def applyAdaptationFilter(signal:np.ndarray, signalSr:int, filterLength:int):
 	>>> plt.figure(figsize=(13, 2))
 	>>> plt.stem(kernel)
 	>>> plt.show()
-		
 	"""
-	tau1 = int(0.4 * signalSr) # standard deviation
-	d1 = int(0.1 * signalSr) # distance from the center
-	tau2 = int(0.4 * signalSr) # standard deviation
-	d2 = int(0.1 * signalSr) # distance from the center
+	tau1 = int(3 * signalSr) # standard deviation
+	d1 = int(1 * signalSr) # distance from the center
+	tau2 = int(3 * signalSr) # standard deviation
+	d2 = int(1 * signalSr) # distance from the center
 	
 	kernel = np.zeros(2 * filterLength)
 	t = np.arange(-filterLength, +filterLength+1) 
@@ -53,3 +52,16 @@ def applyAdaptationFilter(signal:np.ndarray, signalSr:int, filterLength:int):
 	
 	return der, kernel
 
+#import matplotlib.pyplot as plt
+#signal = np.random.random(4000)
+#der, ker = applyAdaptationFilter(signal=signal, signalSr=100, filterLength=40)
+#
+#print()
+#exit()
+#plt.figure(figsize=(10, 3))
+#plt.plot(signal)
+#plt.figure(figsize=(10, 3))
+#plt.plot(der)
+#plt.figure(figsize=(10, 3))
+#plt.plot(ker)
+#plt.show()

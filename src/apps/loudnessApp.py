@@ -25,7 +25,8 @@ def loudnessApp():
 	import librosa
 	
 	sys.path.append(Path(__file__).parents[1])
-	from utils.getPerceivedLoudness import getPerceivedLoudness
+	from modules.getLoudness import getLoudness
+	from modules.getLoudness import getDf
 	
 	#---------------------------SETTINGS------------------------------
 	HIGH_RESOLUTION_SETTINGS = {
@@ -69,15 +70,24 @@ def loudnessApp():
 		if isAudioLoaded:
 			with st.spinner("computing loudness"):
 				if resolution == 1: # high resolution
-					df, fig = getPerceivedLoudness(audioSignal, audioSr, None, HIGH_RESOLUTION_SETTINGS, audioName)
+					getLoudnessObj =  getLoudness(audioSignal=audioSignal, audioSr=audioSr, resolutionSetting=HIGH_RESOLUTION_SETTINGS)
+					outs = getLoudnessObj.run()
+					loudnessContour, loudnessContourTs, IntegratedLUFS = outs["loudnessContour"], outs["loudnessContourTs"], outs["integratedLUFS"]
+					df = getDf(loudnessContour, loudnessContourTs, IntegratedLUFS)
+					fig = getLoudnessObj.plot(show=False)
+					
 				elif resolution == 5: # low resolution
-					df, fig = getPerceivedLoudness(audioSignal, audioSr, None, LOW_RESOLUTION_SETTINGS, audioName)
+					getLoudnessObj =  getLoudness(audioSignal=audioSignal, audioSr=audioSr, resolutionSetting=HIGH_RESOLUTION_SETTINGS)
+					outs = getLoudnessObj.run()
+					loudnessContour, loudnessContourTs, IntegratedLUFS = outs["loudnessContour"], outs["loudnessContourTs"], outs["integratedLUFS"]
+					df = getDf(loudnessContour, loudnessContourTs, IntegratedLUFS)
+					fig = getLoudnessObj.plot(show=False)
 				
 				df["shortTimeLUFS"] = df["shortTimeLUFS"].apply(lambda x: np.round(x, 2)) # round off LUFS values
 				csv = df.to_csv(index=False)  # convert the DataFrame to csv (without index)
 				# a download button for the CSV
 				st.download_button(
-					label="download csv",
+					label="↓ CSV",
 					data=csv,
 					file_name=f"{audioName}-{resolution}secLoudness.csv",
 					mime="text/csv"
