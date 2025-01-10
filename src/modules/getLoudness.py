@@ -167,26 +167,23 @@ class getLoudness:
 		
 		return self.outs
 	
-	def plot(self, show=False):
+	def plot(self, show=False, title:str=""):
 		"""plot to debug"""
 		
 		import matplotlib.pyplot as plt
 		
 		audioSignal = self.inps["audioSignal"]
 		audioSr = self.inps["audioSr"]
-		print(audioSignal, audioSr)
 		
 		loudnessContourTs = self.outs["loudnessContourTs"]
 		loudnessContour = self.outs["loudnessContour"]
 		integratedLUFS = self.outs["integratedLUFS"]
 		
-		print(loudnessContourTs)
-		
 		audioDur = audioSignal.shape[0]/audioSr # for xlim
 		audioTs = np.arange(audioSignal.shape[0])/audioSr # timestamp
 		
 		fig, ax = plt.subplots(figsize=(15, 6), nrows=2, ncols=1, sharex=True)
-		fig.suptitle(f"untitled")
+		fig.suptitle(title)
 		
 		# waveform
 		ax[0].plot(audioTs, audioSignal)

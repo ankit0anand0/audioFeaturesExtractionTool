@@ -74,14 +74,14 @@ def loudnessApp():
 					outs = getLoudnessObj.run()
 					loudnessContour, loudnessContourTs, IntegratedLUFS = outs["loudnessContour"], outs["loudnessContourTs"], outs["integratedLUFS"]
 					df = getDf(loudnessContour, loudnessContourTs, IntegratedLUFS)
-					fig = getLoudnessObj.plot(show=False)
+					fig = getLoudnessObj.plot(show=False, title=audioName)
 					
 				elif resolution == 5: # low resolution
-					getLoudnessObj =  getLoudness(audioSignal=audioSignal, audioSr=audioSr, resolutionSetting=HIGH_RESOLUTION_SETTINGS)
+					getLoudnessObj =  getLoudness(audioSignal=audioSignal, audioSr=audioSr, resolutionSetting=LOW_RESOLUTION_SETTINGS)
 					outs = getLoudnessObj.run()
 					loudnessContour, loudnessContourTs, IntegratedLUFS = outs["loudnessContour"], outs["loudnessContourTs"], outs["integratedLUFS"]
 					df = getDf(loudnessContour, loudnessContourTs, IntegratedLUFS)
-					fig = getLoudnessObj.plot(show=False)
+					fig = getLoudnessObj.plot(show=False, title=audioName)
 				
 				df["shortTimeLUFS"] = df["shortTimeLUFS"].apply(lambda x: np.round(x, 2)) # round off LUFS values
 				csv = df.to_csv(index=False)  # convert the DataFrame to csv (without index)
