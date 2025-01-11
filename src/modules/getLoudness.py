@@ -191,7 +191,7 @@ class getLoudness:
 		ax[0].set_ylabel("amplitude")
 		ax[0].set_xticks(np.arange(0, audioDur, 5))
 		ax[0].set_xlim(0, audioDur)
-		ax[0].set_xlim(-1, 1) # keeping it standard for easy comparison
+		ax[0].set_ylim(-1, 1) # keeping it standard for easy comparison
 		ax[0].xaxis.set_major_formatter(plt.FuncFormatter(secondsTommss))
 		ax[0].tick_params(axis='x', labelrotation=90)
 		ax[0].grid()
