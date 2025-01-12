@@ -24,25 +24,9 @@ def loudnessApp():
 	import io
 	import librosa
 	
-	sys.path.append(Path(__file__).parents[1])
+	sys.path.append(Path(__file__).parents[1]) # importing modules
 	from modules.getLoudness import getLoudness
 	from modules.getLoudness import getDf
-	
-	#---------------------------SETTINGS------------------------------
-	HIGH_RESOLUTION_SETTINGS = {
-		"name": "highres",
-		"blockSize": 0.4, # standard block size as per BS.1770
-		"winSizeSec": 1., # 600 ms window-size
-		"hopSizeSec": 1. # No overlap
-	}
-	
-	LOW_RESOLUTION_SETTINGS = {
-		"name": "lowres",
-		"blockSize": 0.4, # standard block size as per BS.1770
-		"winSizeSec": 5., # 1 sec window 
-		"hopSizeSec": 5. # No overlap
-	}
-	
 	
 	st.title("loudness") # page title
 	
@@ -51,7 +35,7 @@ def loudnessApp():
 	with inputCols[0]:
 		audio = st.file_uploader("upload an audio file", type=["mp3", "wav"], accept_multiple_files=False)
 	with inputCols[1]:
-		resolution = st.selectbox("resolution (sec)", (1, 5))
+		resolution = st.selectbox("resolution setting", ("LOW", "HIGH"), index=1)
 	
 	if audio is not None:
 		audioData = audio.getvalue()
@@ -69,27 +53,20 @@ def loudnessApp():
 		
 		if isAudioLoaded:
 			with st.spinner("computing loudness"):
-				if resolution == 1: # high resolution
-					getLoudnessObj =  getLoudness(audioSignal=audioSignal, audioSr=audioSr, resolutionSetting=HIGH_RESOLUTION_SETTINGS)
-					outs = getLoudnessObj.run()
-					loudnessContour, loudnessContourTs, IntegratedLUFS = outs["loudnessContour"], outs["loudnessContourTs"], outs["integratedLUFS"]
-					df = getDf(loudnessContour, loudnessContourTs, IntegratedLUFS)
-					fig = getLoudnessObj.plot(show=False, title=audioName)
-					
-				elif resolution == 5: # low resolution
-					getLoudnessObj =  getLoudness(audioSignal=audioSignal, audioSr=audioSr, resolutionSetting=LOW_RESOLUTION_SETTINGS)
-					outs = getLoudnessObj.run()
-					loudnessContour, loudnessContourTs, IntegratedLUFS = outs["loudnessContour"], outs["loudnessContourTs"], outs["integratedLUFS"]
-					df = getDf(loudnessContour, loudnessContourTs, IntegratedLUFS)
-					fig = getLoudnessObj.plot(show=False, title=audioName)
 				
+				getLoudnessObj =  getLoudness(audioSignal=audioSignal, audioSr=audioSr, resolutionSetting=resolution)
+				outs = getLoudnessObj.run()
+				loudnessContour, loudnessContourTs, IntegratedLUFS = outs["loudnessContour"], outs["loudnessContourTs"], outs["integratedLUFS"]
+				df = getDf(loudnessContour, loudnessContourTs, IntegratedLUFS)
+				fig = getLoudnessObj.plot(show=False, title=f"{audioName} at {audioSr} hz")
+					
 				df["shortTimeLUFS"] = df["shortTimeLUFS"].apply(lambda x: np.round(x, 2)) # round off LUFS values
 				csv = df.to_csv(index=False)  # convert the DataFrame to csv (without index)
 				# a download button for the CSV
 				st.download_button(
 					label="↓ CSV",
 					data=csv,
-					file_name=f"{audioName}-{resolution}secLoudness.csv",
+					file_name=f"{audioName}-{resolution.lower()}Res.csv",
 					mime="text/csv"
 				)
 				st.pyplot(fig)

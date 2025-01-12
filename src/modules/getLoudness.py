@@ -4,25 +4,40 @@ created on: 09/01/25
 """
 
 import numpy as np
-from pathlib import Path
 import pyloudnorm as pyln
 
-#--------------------------SETTINGS---------------------------
-HIGH_RESOLUTION_SETTINGS = {
-	"name": "highres",
-	"blockSize": 0.4, # standard block size as per BS.1770
-	"winSizeSec": 1., # 1 s window-size
-	"hopSizeSec": 1. # no overlap
-}
-
-LOW_RESOLUTION_SETTINGS = {
-	"name": "lowres",
-	"blockSize": 0.4, # standard block size as per BS.1770
-	"winSizeSec": 5., # 5 sec window 
-	"hopSizeSec": 5. # no overlap
-}
-
 #--------------------------UTILS---------------------------
+def getResolutionSettings(res:str=None):
+	"""
+	desc
+	----
+		get predefined resolution settings
+	args
+	----
+		res: str
+			LOW or HIGH resolution
+	returns
+	-------
+		_: dict
+			dictionary will all values for that resolution
+	"""
+	if res == "HIGH":
+		return {
+		"name": "highres",
+		"blockSize": 0.4, # standard block size as per BS.1770
+		"winSizeSec": 1., # 1 s window-size
+		"hopSizeSec": 1. # no overlap
+	}
+	
+	elif res == "LOW":
+		return {
+			"name": "lowres",
+			"blockSize": 0.4, # standard block size as per BS.1770
+			"winSizeSec": 5., # 5 sec window 
+			"hopSizeSec": 5. # no overlap
+		}
+
+
 def secondsTommss(x:float=None, _=None):
 	"""
 	desc
@@ -67,8 +82,7 @@ def getDf(loudnessContour, loudnessContourTs, integratedLUFS):
 #--------------------------FUNCTION OBJECT---------------------------
 class getLoudness:
 	
-	def __init__(self, audioSignal:np.ndarray=None, audioSr:int=None, resolutionSetting:dict=None):
-		"""set parameters"""
+	def __init__(self, audioSignal:np.ndarray=None, audioSr:int=None, resolutionSetting:str=None):
 		"""set parameters"""
 		self.inps = {
 			"audioSignal": audioSignal,
@@ -84,6 +98,9 @@ class getLoudness:
 			
 		} # variables to be used for plotting/debugging
 		
+		self.debugMode = False
+		self.ran = False
+		
 	def info(self):
 		"""returns a dict containing all the higher level info about the function"""
 		return {
@@ -91,18 +108,50 @@ class getLoudness:
 			"args": [
 				{"name": "audioSignal", "type": np.ndarray, "desc": "audio signal to compute short-time LUFS"},
 				{"name": "audioSr", "type": int, "desc": "sampling rate of the audio signal"},
-				{"name": "resolutionSetting", "type": dict, "desc": "resolution setting for the parameters"},
+				{"name": "resolutionSetting", "type": str, "desc": "resolution setting for the parameters [HIGH, LOW]"},
 			],
 			"returns": [
 				{"name": "loudnessContour","type": np.ndarray, "desc": "loudness contour array"},
 				{"name": "loudnessContourTs","type": np.ndarray, "desc": "loudness contour timestamp"},
-				{"name": "integratedLoudness","type": float, "desc": ""}
+				{"name": "integratedLoudness","type": float, "desc": "integrated loudness for entire track"}
 			]
 		}
 	
+	def __str__(self):
+		"""print details about the function in formatted way"""
+		
+		info = self.info()
+		methods = self.methods()
+		
+		output = []
+		output.append("INFO:")
+		output.append(f"\tDescription: {info['desc']}")
+		output.append("\tArguments:")
+		
+		for arg in info['args']:
+			output.append(f"\t\t - {arg['name']} ({arg['type'].__name__}): {arg['desc']}")
+			
+		output.append("\tReturns:")
+		
+		for ret in info['returns']:
+			ret_desc = ret['desc'] if ret['desc'] else "No description provided"
+			output.append(f"\t\t - {ret['name']} ({ret['type'].__name__}): {ret_desc}")
+			
+		output.append("\nMETHODS:")
+		
+		for method in methods:
+			output.append(f"  - {method}")
+			
+		return "\n".join(output)
+	
 	def methods(self):
 		"""returns list of all methods"""
-		return [method for method in self.__dir__() if not method.startswith("__") and method != "methods"]
+		return [
+				method for method in self.__dir__()
+				if callable(getattr(self, method))  # ensure it's a callable (method)
+				and not method.startswith("__")  # excludes special methods (e.g., __init__)
+				and method != "methods"  # exclude the methods() function itself
+			]
 	
 	def test(self):
 		"""runs custom tests on function"""
@@ -126,15 +175,19 @@ class getLoudness:
 	def validate(self):
 		"""validate inputs"""
 		assert self.inps["audioSignal"].shape != 0, "audio length can't be 0"
+		assert self.inps["resolutionSetting"] in ["low", "LOW", "high", "HIGH"], "invalid resolution option, choose LOW or HIGH"
 		
 			
-	def run(self):
+	def run(self, debugMode:bool=False):
 		"""main implementation of the code"""
 		
-		self.validate() # validate all the inputs
+		self.ran = True # flag to check if run command was called
+		self.debugMode = debugMode # turn on debug mode
+		self.validate() # inputs validation
+		
 		audioSignal = self.inps["audioSignal"]
 		audioSr = self.inps["audioSr"]
-		resolutionSetting = self.inps["resolutionSetting"]
+		resolutionSetting = getResolutionSettings(self.inps["resolutionSetting"])
 		
 		if len(audioSignal.shape) == 2:
 			audioSignal = np.mean(audioSignal, axis=1) # stereo to mono
@@ -169,6 +222,9 @@ class getLoudness:
 	
 	def plot(self, show=False, title:str=""):
 		"""plot to debug"""
+		
+		if not self.ran:
+			raise PermissionError("run method needs to be called before plotting")
 		
 		import matplotlib.pyplot as plt
 		
@@ -210,29 +266,33 @@ class getLoudness:
 		
 		fig.tight_layout(rect=[0, 0, 1, 0.96])  # space for suptitle
 		
+		if show:
+			plt.show()
+		
 		return fig
 	
-	def saveLocal(self, outputDp:Path=None, dirname:str=None):
-		"""
-		desc
-		----
-			save debug/output files locally
-		args
-		----
-			outputDp:
-			dirname:
-		returns
-		-------
-			None
-		"""
+	def saveOutput(self, outputDp=None):
+		"""save debug/output files"""
+		
+		from pathlib import Path
 		import matplotlib.pyplot as plt
-		loudnessContour, loudnessContourTs, integratedLUFS, = self.run()
+		
+		if not self.ran:
+			raise PermissionError("run method needs to be called before saving output")
+		if outputDp is None:
+			raise ValueError("outputDp needs to be passed")
+		if isinstance(outputDp, str):
+			outputDp = Path(outputDp)
+		
+		loudnessContourTs = self.outs["loudnessContourTs"]
+		loudnessContour = self.outs["loudnessContour"]
+		integratedLUFS = self.outs["integratedLUFS"]
+		
 		df = getDf(loudnessContour, loudnessContourTs, integratedLUFS)
 		fig = self.plot(show=False)
 
 		# save files
-		if outputDp is not None and dirname is not None: # we can use this flag to tell if we want to save the files (eg. in webapp, we might not want to save)
-			resolution = self.resolutionSetting["name"] # file name should contain this
-			(outputDp/dirname).mkdir(exist_ok="True") # create a folder to store all computed files
-			df.to_csv(outputDp/dirname/f"{resolution}.csv", index=False) # save csv
-			plt.savefig(outputDp/dirname/f"{resolution}.png") # save plot
+		resolution = getResolutionSettings(self.inps["resolutionSetting"])["name"] # file name should contain this
+		outputDp.mkdir(exist_ok="True") # create a folder to store all computed files
+		df.to_csv(outputDp/f"{resolution}.csv", index=False) # save csv
+		plt.savefig(outputDp/f"{resolution}.png") # save plot

@@ -53,7 +53,7 @@ def applyAdaptationFilter(signal:np.ndarray, signalSr:int, filterLength:int):
 	kernel =  np.exp(-(t-d1)**2/(2*tau1**2)) - np.exp(-(t+d2)**2/(2*tau2**2))
 	kernel /= np.sum(np.abs(kernel)) # normalise the kernal
 	
-	# Apply the biphasic filter using convolution
+	# apply the biphasic filter using convolution
 	der = scipy.signal.convolve(signal, kernel[::-1], mode='same') # reversed to perform convolution in the right orientation
 	der[der>0] = 0 # for this task we are only interested in drop in intensity
 	
@@ -77,6 +77,10 @@ class getCutOffFreq:
 			
 		} # variables to be used for plotting/debugging
 		
+		self.debugMode = False
+		self.ran = False
+
+		
 	def info(self):
 		"""returns a dict containing all the higher level info about the function"""
 		return {
@@ -91,9 +95,43 @@ class getCutOffFreq:
 			]
 		}
 	
+	def __str__(self):
+		"""print details about the function in formatted way"""
+		
+		info = self.info()
+		methods = self.methods()
+		
+		output = []
+		output.append("INFO:")
+		output.append(f"\tDescription: {info['desc']}")
+		output.append("\tArguments:")
+		
+		for arg in info['args']:
+			output.append(f"\t\t - {arg['name']} ({arg['type'].__name__}): {arg['desc']}")
+			
+		output.append("\tReturns:")
+		
+		for ret in info['returns']:
+			ret_desc = ret['desc'] if ret['desc'] else "No description provided"
+			output.append(f"\t\t - {ret['name']} ({ret['type'].__name__}): {ret_desc}")
+			
+		output.append("\nMETHODS:")
+		
+		for method in methods:
+			output.append(f"  - {method}")
+			
+		return "\n".join(output)
+	
+	
 	def methods(self):
 		"""returns list of all methods"""
-		return [method for method in self.__dir__() if not method.startswith("__") and method != "methods"]
+		
+		return [
+				method for method in self.__dir__()
+				if callable(getattr(self, method))  # ensure it's a callable (method)
+				and not method.startswith("__")  # excludes special methods (e.g., __init__)
+				and method != "methods"  # exclude the methods() function itself
+			]
 	
 	def test(self):
 		"""runs custom tests on function"""
@@ -120,6 +158,10 @@ class getCutOffFreq:
 			
 	def run(self, debugMode=False):
 		"""main implementation of the code"""
+		
+		self.ran = True # flag to check if run command was called
+		self.debugMode = debugMode # turn on debug mode
+		self.validate() # inputs validation
 		
 		audioSignal = self.inps["audioSignal"]
 		audioSr = self.inps["audioSr"]
@@ -172,7 +214,7 @@ class getCutOffFreq:
 		self.outs["energyDistribution"] = energyDistribution
 		self.outs["highCutOff"] = highCutOff
 		
-		if debugMode:
+		if self.debugMode:
 			self.debugs["powerSpecdB"] = powerSpecdB
 			self.debugs["ders"] = ders
 			self.debugs["peaksArray"] = peaksArray
@@ -183,6 +225,11 @@ class getCutOffFreq:
 	
 	def plot(self, show=False):
 		"""plot to debug"""
+		
+		if not self.ran:
+			raise PermissionError("run method needs to be called before plotting")
+		if not self.debugMode:
+			raise PermissionError("run method needs to be called with debugMode True before plotting")
 		
 		import matplotlib.pyplot as plt
 		
@@ -206,6 +253,10 @@ class getCutOffFreq:
 		
 		return fig
 		
-	def saveLocal(self, outputDp:Path=None, dirname:str=None):
-		"""save debug/output files locally"""
+	def saveOutput(self, outputDp:Path=None, dirname:str=None):
+		"""save debug/output files"""
+		
+		if not self.ran:
+			raise PermissionError("run method needs to be called before saving output")
+			
 		pass
